@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Almanca Karteikarten</title>
+<style>
+  :root{
+    --cream:#FFF8EC;
+    --ink:#232323;
+    --pink:#FFD1DC;
+    --peach:#FFDCB8;
+    --mint:#CFF5E7;
+    --sky:#CFE8FF;
+    --lilac:#E3D4FF;
+    --lemon:#FFF3B0;
+    --coral:#FFB3A7;
+    --sage:#D8F0C8;
+    --accent:#FF6F91;
+    --shadow: rgba(35,35,35,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;
+    height:100%;
+    background:var(--cream);
+    color:var(--ink);
+    font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  #app{min-height:100%;display:flex;flex-direction:column;}
+
+  /* ---------- HOME ---------- */
+  header.home-head{
+    padding:36px 20px 18px;
+    text-align:center;
+  }
+  header.home-head h1{
+    font-size:clamp(28px,6vw,42px);
+    margin:0 0 6px;
+    font-weight:800;
+    letter-spacing:-0.02em;
+  }
+  header.home-head h1 span{color:var(--accent);}
+  header.home-head p{
+    margin:0;
+    color:#6b6b6b;
+    font-size:15px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:14px;
+    padding:10px 20px 40px;
+    max-width:900px;
+    margin:0 auto;
+    width:100%;
+  }
+  .topic-card{
+    border-radius:22px;
+    padding:20px 16px;
+    cursor:pointer;
+    position:relative;
+    min-height:130px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    box-shadow:0 6px 0 var(--shadow);
+    border:2px solid rgba(35,35,35,0.06);
+    transition:transform .15s ease, box-shadow .15s ease;
+    user-select:none;
+  }
+  .topic-card:active{transform:translateY(3px);box-shadow:0 2px 0 var(--shadow);}
+  .topic-card h3{margin:0 0 4px;font-size:17px;font-weight:700;line-height:1.25;}
+  .topic-card p{margin:0;font-size:12px;color:rgba(35,35,35,0.65);line-height:1.3;}
+  .topic-card .count{
+    align-self:flex-end;
+    font-size:12px;
+    font-weight:700;
+    background:rgba(255,255,255,0.6);
+    padding:3px 10px;
+    border-radius:20px;
+    margin-top:10px;
+  }
+
+  /* ---------- STUDY VIEW ---------- */
+  .study{
+    display:none;
+    flex:1;
+    flex-direction:column;
+    height:100vh;
+    height:100dvh;
+  }
+  .study.active{display:flex;}
+  .study-top{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 16px;
+  }
+  .back-btn{
+    background:white;
+    border:none;
+    border-radius:14px;
+    padding:9px 14px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 3px 0 var(--shadow);
+    color:var(--ink);
+  }
+  .back-btn:active{transform:translateY(2px);box-shadow:none;}
+  .study-title{
+    flex:1;
+    text-align:center;
+    font-weight:800;
+    font-size:15px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .icon-btn{
+    background:white;
+    border:none;
+    width:38px;height:38px;
+    border-radius:12px;
+    font-size:17px;
+    cursor:pointer;
+    box-shadow:0 3px 0 var(--shadow);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:active{transform:translateY(2px);box-shadow:none;}
+
+  .progress-wrap{
+    padding:0 20px;
+  }
+  .progress-bar{
+    height:8px;
+    background:rgba(35,35,35,0.08);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--accent);
+    border-radius:6px;
+    transition:width .25s ease;
+  }
+  .progress-label{
+    text-align:center;
+    font-size:12px;
+    color:#8a8a8a;
+    margin-top:6px;
+    font-weight:600;
+  }
+
+  .card-stage{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px 20px 6px;
+    perspective:1400px;
+    touch-action:pan-y;
+  }
+  .card{
+    width:100%;
+    max-width:480px;
+    height:min(52vh,420px);
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform .45s cubic-bezier(.2,.9,.25,1);
+    cursor:pointer;
+  }
+  .card.flipped{transform:rotateY(180deg);}
+  .card.swipe-left{transform:translateX(-140%) rotate(-12deg);}
+  .card.swipe-right{transform:translateX(140%) rotate(12deg);}
+  .face{
+    position:absolute;inset:0;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    border-radius:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:34px 28px;
+    text-align:center;
+    box-shadow:0 10px 0 var(--shadow), 0 20px 30px rgba(0,0,0,0.08);
+    border:3px solid rgba(35,35,35,0.08);
+  }
+  .face .txt{
+    font-size:clamp(19px,4.6vw,27px);
+    font-weight:700;
+    line-height:1.4;
+    color:var(--ink);
+    max-height:100%;
+    overflow-y:auto;
+  }
+  .face .tag{
+    position:absolute;
+    top:18px;left:22px;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:rgba(35,35,35,0.45);
+  }
+  .face.back{transform:rotateY(180deg);}
+
+  .hint{
+    text-align:center;
+    font-size:12.5px;
+    color:#9a9a9a;
+    padding:2px 0 10px;
+    font-weight:600;
+  }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    padding:6px 20px 28px;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .ctrl-btn{
+    border:none;
+    border-radius:18px;
+    padding:14px 22px;
+    font-size:15px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 5px 0 var(--shadow);
+    min-width:90px;
+  }
+  .ctrl-btn:active{transform:translateY(3px);box-shadow:none;}
+  .ctrl-prev{background:white;color:var(--ink);}
+  .ctrl-flip{background:var(--ink);color:white;}
+  .ctrl-next{background:var(--accent);color:white;}
+
+  .done-screen{
+    display:none;
+    flex:1;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:40px 24px;
+    gap:18px;
+  }
+  .done-screen.active{display:flex;}
+  .done-screen .emoji{font-size:54px;}
+  .done-screen h2{margin:0;font-size:24px;font-weight:800;}
+  .done-screen p{margin:0;color:#767676;font-size:14px;}
+  .done-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:rgba(35,35,35,0.15);border-radius:10px;}
+
+  @media (max-width:380px){
+    .ctrl-btn{padding:12px 16px;font-size:14px;min-width:76px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="homeView">
+    <header class="home-head">
+      <h1>Almanca <span>Karteikarten</span></h1>
+      <p>Bir konu seç, çalışmaya başla · kaydırarak veya klavyeyle ilerle</p>
+    </header>
+    <div class="grid" id="topicGrid"></div>
+  </div>
+
+  <div class="study" id="studyView">
+    <div class="study-top">
+      <button class="back-btn" id="btnBack">← Konular</button>
+      <div class="study-title" id="studyTitle"></div>
+      <button class="icon-btn" id="btnShuffle" title="Karıştır">🔀</button>
+      <button class="icon-btn" id="btnFullscreen" title="Tam ekran">⛶</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel"></div>
+    </div>
+    <div class="card-stage" id="cardStage">
+      <div class="card" id="card">
+        <div class="face front"><span class="tag">Almanca</span><div class="txt" id="frontTxt"></div></div>
+        <div class="face back"><span class="tag">Türkçe</span><div class="txt" id="backTxt"></div></div>
+      </div>
+    </div>
+    <div class="hint">Karta dokun / tıkla → çevir · sağa/sola kaydır veya ← → tuşları → geç</div>
+    <div class="controls">
+      <button class="ctrl-btn ctrl-prev" id="btnPrev">‹ Geri</button>
+      <button class="ctrl-btn ctrl-flip" id="btnFlip">Çevir</button>
+      <button class="ctrl-btn ctrl-next" id="btnNext">İleri ›</button>
+    </div>
+  </div>
+
+  <div class="done-screen" id="doneView">
+    <div class="emoji">🎉</div>
+    <h2 id="doneTitle">Bu grubu bitirdin!</h2>
+    <p id="doneSub"></p>
+    <div class="done-actions">
+      <button class="ctrl-btn ctrl-prev" id="btnRepeat">Tekrar Çalış</button>
+      <button class="ctrl-btn ctrl-next" id="btnNextGroup">Sonraki Grup ›</button>
+      <button class="ctrl-btn ctrl-flip" id="btnDoneHome">Konulara Dön</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const SECTIONS = [{"id": "dativ", "title": "Dativ Präpositionen", "sub": "aus – bei – mit – nach – von – seit – zu – gegenüber", "cards": [{"f": "Ich komme aus der Türkei.", "b": "Türkiye'den geliyorum."}, {"f": "Das Geschenk ist aus Holz.", "b": "Hediye ahşaptan yapılmış."}, {"f": "Sie trinkt Wasser aus der Flasche.", "b": "Şişeden su içiyor."}, {"f": "Er steigt aus dem Auto.", "b": "O, arabadan iniyor."}, {"f": "Wir lernen viel aus den Fehlern.", "b": "Hatalardan çok şey öğreniyoruz."}, {"f": "Die Blumen sind aus dem Garten.", "b": "Çiçekler bahçeden."}, {"f": "Ich nehme Geld aus der Tasche.", "b": "Çantadan para alıyorum."}, {"f": "Der Vogel fliegt aus dem Käfig.", "b": "Kuş kafesten uçuyor."}, {"f": "Die Suppe ist aus Gemüse.", "b": "Çorba sebzelerden yapılmış."}, {"f": "Die Nachricht kommt aus dem Internet.", "b": "Haber internetten geliyor."}, {"f": "Ich bin bei meiner Freundin.", "b": "Kız arkadaşımın yanındayım."}, {"f": "Wir treffen uns bei der Schule.", "b": "Okulun yanında buluşuyoruz."}, {"f": "Er arbeitet bei einer Bank.", "b": "O, bir bankada çalışıyor."}, {"f": "Sie wohnt bei den Eltern.", "b": "Ailesinin yanında yaşıyor."}, {"f": "Ich kaufe etwas bei Aldi.", "b": "Aldi'den bir şey alıyorum."}, {"f": "Wir sind bei der Arbeit.", "b": "İşteyiz."}, {"f": "Ich war gestern bei der Party.", "b": "Dün partideydim."}, {"f": "Das Kind bleibt bei der Oma.", "b": "Çocuk büyükannesinin yanında kalıyor."}, {"f": "Wir essen bei Freunden.", "b": "Arkadaşlarda yemek yiyoruz."}, {"f": "Ich habe Glück bei diesem Spiel.", "b": "Bu oyunda şansım var."}, {"f": "Ich gehe mit meinem Freund ins Kino.", "b": "Arkadaşımla sinemaya gidiyorum."}, {"f": "Wir fahren mit dem Zug.", "b": "Trenle gidiyoruz."}, {"f": "Sie spielt mit den Kindern.", "b": "Çocuklarla oynuyor."}, {"f": "Er spricht mit dem Lehrer.", "b": "Öğretmenle konuşuyor."}, {"f": "Wir kochen mit frischem Gemüse.", "b": "Taze sebzelerle yemek yapıyoruz."}, {"f": "Sie lacht mit ihrer Schwester.", "b": "Kız kardeşiyle gülüyor."}, {"f": "Ich schreibe mit dem Bleistift.", "b": "Kurşun kalemle yazıyorum."}, {"f": "Wir lernen mit Freude.", "b": "Keyifle öğreniyoruz."}, {"f": "Sie tanzt mit ihrem Mann.", "b": "Kocasıyla dans ediyor."}, {"f": "Er telefoniert mit seiner Mutter.", "b": "Annesiyle telefonla konuşuyor."}, {"f": "Wir fahren nach Berlin.", "b": "Berlin'e gidiyoruz."}, {"f": "Sie fragt nach dem Weg.", "b": "Yolu soruyor."}, {"f": "Ich gehe nach Hause.", "b": "Eve gidiyorum."}, {"f": "Nach der Arbeit gehe ich ins Kino.", "b": "İşten sonra sinemaya gidiyorum."}, {"f": "Nach dem Essen machen wir einen Spaziergang.", "b": "Yemekten sonra yürüyüş yapıyoruz."}, {"f": "Er riecht nach Parfum.", "b": "O, parfüm kokuyor."}, {"f": "Wir schauen nach den Kindern.", "b": "Çocuklara bakıyoruz."}, {"f": "Sie benimmt sich nach den Regeln.", "b": "Kurallara göre davranıyor."}, {"f": "Der Zug fährt nach München.", "b": "Tren Münih'e gidiyor."}, {"f": "Ich rufe dich nach der Schule an.", "b": "Okuldan sonra seni ararım."}, {"f": "Das Geschenk ist von meiner Mutter.", "b": "Hediye annemden."}, {"f": "Ein Brief von meinem Freund ist gekommen.", "b": "Arkadaşımdan bir mektup geldi."}, {"f": "Ich bekomme Geld von meinem Vater.", "b": "Babamdan para alıyorum."}, {"f": "Der Zug fährt von Berlin nach Hamburg.", "b": "Tren Berlin'den Hamburg'a gidiyor."}, {"f": "Die Idee kommt von dir.", "b": "Fikir senden geliyor."}, {"f": "Das Bild ist von Picasso.", "b": "Resim Picasso'dan."}, {"f": "Ich lerne viel von meinen Lehrern.", "b": "Öğretmenlerimden çok şey öğreniyorum."}, {"f": "Wir sprechen von der Reise.", "b": "Seyahatten bahsediyoruz."}, {"f": "Ich habe ein Geschenk von meinem Onkel bekommen.", "b": "Amcamdan bir hediye aldım."}, {"f": "Der Brief ist von gestern.", "b": "Mektup dünden."}, {"f": "Ich lebe seit einem Jahr in Deutschland.", "b": "Bir yıldır Almanya'da yaşıyorum."}, {"f": "Sie arbeitet seit 2015 in dieser Firma.", "b": "2015'ten beri bu firmada çalışıyor."}, {"f": "Wir sind seit zwei Stunden hier.", "b": "İki saattir buradayız."}, {"f": "Er kennt sie seit der Kindheit.", "b": "Onu çocukluktan beri tanıyor."}, {"f": "Ich warte seit einer Stunde auf dich.", "b": "Bir saattir seni bekliyorum."}, {"f": "Seit dem Unfall fährt er vorsichtiger.", "b": "Kazadan beri daha dikkatli sürüyor."}, {"f": "Seit wann wohnst du hier?", "b": "Burada ne zamandan beri oturuyorsun?"}, {"f": "Sie ist krank seit letzter Woche.", "b": "Geçen haftadan beri hasta."}, {"f": "Seit gestern regnet es.", "b": "Dünden beri yağmur yağıyor."}, {"f": "Ich bin müde seit dem Morgen.", "b": "Sabahtan beri yorgunum."}, {"f": "Ich gehe zum Arzt.", "b": "Doktora gidiyorum."}, {"f": "Wir fahren zur Schule.", "b": "Okula gidiyoruz."}, {"f": "Er geht zur Arbeit.", "b": "İşe gidiyor."}, {"f": "Kommst du zu mir?", "b": "Bana geliyor musun?"}, {"f": "Wir laden dich zur Party ein.", "b": "Seni partiye davet ediyoruz."}, {"f": "Sie geht zum Bahnhof.", "b": "Tren istasyonuna gidiyor."}, {"f": "Ich fahre zum Supermarkt.", "b": "Süpermarkete gidiyorum."}, {"f": "Wir bringen das Kind zum Kindergarten.", "b": "Çocuğu anaokuluna götürüyoruz."}, {"f": "Ich gehe zur Post.", "b": "Postaneye gidiyorum."}, {"f": "Er fährt zum See.", "b": "Göle gidiyor."}, {"f": "Die Bank liegt der Post gegenüber.", "b": "Banka postanenin karşısında."}, {"f": "Mein Haus ist der Schule gegenüber.", "b": "Evim okulun karşısında."}, {"f": "Sie sitzt mir gegenüber.", "b": "O, karşımda oturuyor."}, {"f": "Der Park ist dem Rathaus gegenüber.", "b": "Park belediye binasının karşısında."}, {"f": "Er wohnt der Kirche gegenüber.", "b": "O, kilisenin karşısında oturuyor."}, {"f": "Das Café liegt dem Kino gegenüber.", "b": "Kafe sinemanın karşısında."}, {"f": "Ich stehe dir gegenüber.", "b": "Senin karşındayım."}, {"f": "Die Haltestelle ist dem Hotel gegenüber.", "b": "Durak otelin karşısında."}, {"f": "Das Restaurant liegt der Bank gegenüber.", "b": "Restoran bankanın karşısında."}, {"f": "Wir wohnen dem Park gegenüber.", "b": "Parkın karşısında oturuyoruz."}]}, {"id": "arzt", "title": "Beim Arzt", "sub": "Doktorda diyalog ve kalıplar", "cards": [{"f": "Ich habe seit zwei Tagen starke Kopfschmerzen.", "b": "İki gündür şiddetli baş ağrım var."}, {"f": "Haben Sie noch andere Beschwerden?", "b": "Başka şikâyetiniz var mı?"}, {"f": "Manchmal wird mir auch schwindelig.", "b": "Bazen başım da dönüyor."}, {"f": "Haben Sie Fieber oder Husten?", "b": "Ateşiniz veya öksürüğünüz var mı?"}, {"f": "Nein, Fieber habe ich nicht, nur Kopfschmerzen und Schwindel.", "b": "Hayır, ateşim yok, sadece baş ağrısı ve baş dönmesi var."}, {"f": "Ich möchte Sie kurz untersuchen.", "b": "Sizi kısa bir muayene etmek istiyorum."}, {"f": "Bitte setzen Sie sich hierhin.", "b": "Lütfen buraya oturun."}, {"f": "Machen Sie sich keine Sorgen.", "b": "Endişelenmeyin."}, {"f": "Ich verschreibe Ihnen ein leichtes Medikament.", "b": "Size hafif bir ilaç yazacağım."}, {"f": "Soll ich mich ein paar Tage ausruhen?", "b": "Birkaç gün dinleneyim mi?"}, {"f": "Ruhen Sie sich gut aus und trinken Sie viel Wasser.", "b": "Güzelce dinlenin ve bol su için."}, {"f": "Gern geschehen. Gute Besserung!", "b": "Rica ederim. Geçmiş olsun!"}, {"f": "Ich habe seit einer Woche Rückenschmerzen.", "b": "Bir haftadır bel ağrım var."}, {"f": "Ich habe seit gestern Halsschmerzen.", "b": "Dünden beri boğazım ağrıyor."}, {"f": "Ich habe seit drei Tagen keinen Appetit.", "b": "Üç gündür iştahım yok."}, {"f": "Ich habe seit zwei Wochen Probleme mit meinem Computer.", "b": "İki haftadır bilgisayarımda sorun var."}, {"f": "Haben Sie noch andere Probleme mit dem Gerät?", "b": "Cihazla başka sorununuz var mı?"}, {"f": "Haben Sie noch andere Wünsche?", "b": "Başka bir isteğiniz var mı?"}, {"f": "Haben Sie noch andere Fragen?", "b": "Başka sorunuz var mı?"}, {"f": "Ich möchte kurz Ihre Hausaufgaben kontrollieren.", "b": "Ödevlerinizi kısa bir kontrol etmek istiyorum."}, {"f": "Ich möchte kurz Ihre Arbeit überprüfen.", "b": "İşinizi kısa bir gözden geçirmek istiyorum."}, {"f": "Ich möchte kurz das Auto untersuchen.", "b": "Arabayı kısaca incelemek istiyorum."}, {"f": "Machen Sie sich keine Sorgen, Sie schaffen das!", "b": "Endişelenmeyin, başaracaksınız!"}, {"f": "Machen Sie sich keine Sorgen, wir melden uns bald.", "b": "Endişelenmeyin, yakında size döneceğiz."}, {"f": "Machen Sie sich keine Sorgen, das ist ganz normal.", "b": "Endişelenmeyin, bu tamamen normal."}, {"f": "Ich verschreibe Ihnen einen Ernährungsplan.", "b": "Size bir beslenme planı hazırlayacağım."}, {"f": "Ich verschreibe Ihnen ein Trainingsprogramm.", "b": "Size bir antrenman programı hazırlayacağım."}, {"f": "Ich verschreibe Ihnen ein paar Entspannungsübungen.", "b": "Size birkaç gevşeme egzersizi önereceğim."}, {"f": "Gute Besserung, hoffentlich bist du bald gesund.", "b": "Geçmiş olsun, umarım yakında iyileşirsin."}, {"f": "Gute Besserung, pass das nächste Mal besser auf!", "b": "Geçmiş olsun, bir dahaki sefere dikkat et!"}, {"f": "Ich wünsche dir gute Besserung.", "b": "Sana geçmiş olsun diliyorum."}]}, {"id": "supermarkt", "title": "Im Supermarkt", "sub": "Markette diyalog ve kalıplar", "cards": [{"f": "Können Sie mir bitte sagen, wo die Milch steht?", "b": "Bana sütlerin nerede olduğunu söyleyebilir misiniz?"}, {"f": "Die Milch finden Sie im Gang 3, gleich neben dem Käse.", "b": "Sütleri 3. koridorda, peynirlerin hemen yanında bulabilirsiniz."}, {"f": "Und wo ist das Brot?", "b": "Peki, ekmek nerede?"}, {"f": "Das ist hinten rechts, neben der Bäckerei-Abteilung.", "b": "O, arka sağ tarafta, fırın bölümünün yanında."}, {"f": "Haben Sie heute frisches Obst im Angebot?", "b": "Bugün taze meyveniz indirimde mi?"}, {"f": "Wir haben Äpfel und Bananen im Sonderangebot.", "b": "Elma ve muz kampanyada."}, {"f": "Perfekt, die nehme ich auch.", "b": "Mükemmel, onlardan da alayım."}, {"f": "Viel Spaß beim Einkaufen!", "b": "İyi alışverişler!"}, {"f": "Können Sie mir bitte sagen, wo der Fahrkartenautomat steht?", "b": "Bana bilet makinesinin nerede olduğunu söyleyebilir misiniz?"}, {"f": "Können Sie mir bitte sagen, wo die Notaufnahme ist?", "b": "Bana acil servisin nerede olduğunu söyleyebilir misiniz?"}, {"f": "Können Sie mir bitte sagen, wo die Bücher über Geschichte stehen?", "b": "Tarih kitaplarının nerede olduğunu söyleyebilir misiniz?"}, {"f": "Den Busbahnhof finden Sie gleich links.", "b": "Otobüs terminalini hemen solda bulabilirsiniz."}, {"f": "Die Toiletten finden Sie im ersten Stock.", "b": "Tuvaletleri birinci katta bulabilirsiniz."}, {"f": "Die Fahrkarten finden Sie am Schalter dort drüben.", "b": "Biletleri şuradaki gişeden bulabilirsiniz."}, {"f": "Haben Sie heute frisches Gemüse im Angebot?", "b": "Bugün taze sebze kampanyada mı?"}, {"f": "Haben Sie Laptops im Angebot?", "b": "Laptoplarda kampanya var mı?"}, {"f": "Haben Sie heute ein Menü im Angebot?", "b": "Bugün menüde özel bir şey var mı?"}, {"f": "Die Ausstellung ist hinten links.", "b": "Sergi arka solda."}, {"f": "Die Apotheke ist vorne rechts.", "b": "Eczane ön sağda."}, {"f": "Die Umkleiden sind unten im Keller.", "b": "Soyunma odaları bodrumda."}, {"f": "Viel Spaß beim Lernen!", "b": "İyi dersler! Öğrenirken keyifli vakitler!"}, {"f": "Viel Spaß beim Kochen!", "b": "Yemek yaparken keyifli vakitler!"}, {"f": "Viel Spaß beim Reisen!", "b": "İyi yolculuklar!"}, {"f": "Viel Spaß beim Sport!", "b": "Spor yaparken eğlenceler!"}, {"f": "Viel Spaß beim Spielen!", "b": "Oynarken iyi eğlenceler!"}]}, {"id": "gern", "title": "Ich ... gern", "sub": "Hobiler ve gern + fiil çekimi", "cards": [{"f": "Ich renne gern.", "b": "Koşmayı severim."}, {"f": "Ich male gern.", "b": "Resim yapmayı severim."}, {"f": "Ich schaukle gern.", "b": "Sallanmayı severim."}, {"f": "Ich wippe gern.", "b": "Tahterevalliye binmeyi severim."}, {"f": "Ich rutsche gern.", "b": "Kaymayı severim."}, {"f": "Ich klettere gern.", "b": "Tırmanmayı severim."}, {"f": "Ich hüpfe gern.", "b": "Zıplamayı severim."}, {"f": "Ich arbeite gern.", "b": "Çalışmayı severim."}, {"f": "Ich schwimme gern.", "b": "Yüzmeyi severim."}, {"f": "Ich tanze gern.", "b": "Dans etmeyi severim."}, {"f": "Ich singe gern.", "b": "Şarkı söylemeyi severim."}, {"f": "Ich lese gern.", "b": "Kitap okumayı severim."}, {"f": "Ich spiele gern Fußball.", "b": "Futbol oynamayı severim."}, {"f": "Ich fahre gern Fahrrad.", "b": "Bisiklete binmeyi severim."}, {"f": "Ich baue gern mit Lego.", "b": "Lego ile oynamayı severim."}, {"f": "Ich springe gern Seil.", "b": "İp atlamayı severim."}, {"f": "Ich male gern mit Buntstiften.", "b": "Renkli kalemlerle resim yapmayı severim."}, {"f": "Ich spiele gern im Sand.", "b": "Kumda oynamayı severim."}, {"f": "Ich bastle gern.", "b": "El işi yapmayı severim."}, {"f": "Ich laufe gern im Park.", "b": "Parkta koşmayı severim."}, {"f": "Ich schaue gern Bilderbücher an.", "b": "Resimli kitaplara bakmayı severim."}, {"f": "Ich helfe gern.", "b": "Yardım etmeyi severim."}, {"f": "Ich esse gern Eis.", "b": "Dondurma yemeyi severim."}, {"f": "Ich lache gern.", "b": "Gülmeyi severim."}, {"f": "Ich schlafe gern.", "b": "Uyumayı severim."}, {"f": "Ich höre gern Musik.", "b": "Müzik dinlemeyi severim."}, {"f": "Ich spiele gern mit meinen Freunden.", "b": "Arkadaşlarımla oynamayı severim."}, {"f": "Ich zeichne gern.", "b": "Çizim yapmayı severim."}, {"f": "Ich pflücke gern Blumen.", "b": "Çiçek toplamayı severim."}, {"f": "Ich sammle gern Steine.", "b": "Taş toplamayı severim."}, {"f": "Ich backe gern Kuchen.", "b": "Kek yapmayı severim."}, {"f": "Ich schaue gern Filme.", "b": "Film izlemeyi severim."}, {"f": "Ich spiele gern mit meinem Hund.", "b": "Köpeğimle oynamayı severim."}, {"f": "Ich reite gern.", "b": "Ata binmeyi severim."}, {"f": "Ich tanze gern Ballett.", "b": "Bale yapmayı severim."}, {"f": "Ich fotografiere gern.", "b": "Fotoğraf çekmeyi severim."}, {"f": "Ich fliege gern mit dem Flugzeug.", "b": "Uçakla uçmayı severim."}, {"f": "Du malst gern.", "b": "Sen resim yapmayı seversin."}, {"f": "Du rennst gern.", "b": "Sen koşmayı seversin."}, {"f": "Du spielst gern mit Lego.", "b": "Sen Lego ile oynamayı seversin."}, {"f": "Du schwimmst gern.", "b": "Sen yüzmeyi seversin."}, {"f": "Du tanzt gern.", "b": "Sen dans etmeyi seversin."}, {"f": "Du singst gern.", "b": "Sen şarkı söylemeyi seversin."}, {"f": "Du liest gern Bücher.", "b": "Sen kitap okumayı seversin."}, {"f": "Du kletterst gern.", "b": "Sen tırmanmayı seversin."}, {"f": "Du springst gern Seil.", "b": "Sen ip atlamayı seversin."}, {"f": "Du spielst gern Fußball.", "b": "Sen futbol oynamayı seversin."}, {"f": "Du hörst gern Musik.", "b": "Sen müzik dinlemeyi seversin."}, {"f": "Du backst gern Kuchen.", "b": "Sen kek yapmayı seversin."}, {"f": "Du bastelst gern.", "b": "Sen el işi yapmayı seversin."}, {"f": "Du hilfst gern.", "b": "Sen yardım etmeyi seversin."}, {"f": "Du lachst gern.", "b": "Sen gülmeyi seversin."}, {"f": "Malst du gern? – Ja, ich male gern. / Nein, ich male nicht gern.", "b": "Resim yapmayı sever misin? – Evet, severim. / Hayır, sevmem."}, {"f": "Rennst du gern? – Ja, ich renne gern. / Nein, ich renne nicht gern.", "b": "Koşmayı sever misin? – Evet, severim. / Hayır, sevmem."}, {"f": "Schwimmst du gern? – Ja, ich schwimme gern. / Nein, ich schwimme nicht gern.", "b": "Yüzmeyi sever misin? – Evet, severim. / Hayır, sevmem."}, {"f": "Liest du gern? – Ja, ich lese gern. / Nein, ich lese nicht gern.", "b": "Okumayı sever misin? – Evet, severim. / Hayır, sevmem."}, {"f": "Singst du gern? – Ja, ich singe gern. / Nein, ich singe nicht gern.", "b": "Şarkı söylemeyi sever misin? – Evet, severim. / Hayır, sevmem."}, {"f": "Kletterst du gern? – Ja, ich klettere gern. / Nein, ich klettere nicht gern.", "b": "Tırmanmayı sever misin? – Evet, severim. / Hayır, sevmem."}, {"f": "Spielst du gern Fußball? – Ja, ich spiele gern Fußball.", "b": "Futbol oynamayı sever misin? – Evet, severim."}, {"f": "Hörst du gern Musik? – Ja, ich höre gern Musik.", "b": "Müzik dinlemeyi sever misin? – Evet, severim."}, {"f": "Kocht er gern? – Ja, er kocht gern. / Nein, er kocht nicht gern.", "b": "O (erkek) yemek yapmayı sever mi? – Evet, sever. / Hayır, sevmez."}, {"f": "Fotografiert sie gern? – Ja, sie fotografiert gern.", "b": "O (kadın) fotoğraf çekmeyi sever mi? – Evet, sever."}, {"f": "Tanzt sie gern Ballett? – Ja, sie tanzt gern Ballett.", "b": "O (kadın) bale yapmayı sever mi? – Evet, sever."}, {"f": "Rätselt ihr gern? – Ja, wir rätseln gern.", "b": "Bulmaca çözmeyi sever misiniz? – Evet, severiz."}, {"f": "Spielt ihr gern Brettspiele? – Ja, wir spielen gern Brettspiele.", "b": "Masa oyunları oynamayı sever misiniz? – Evet, severiz."}, {"f": "Rodeln wir gern? – Ja, wir rodeln gern.", "b": "Kızak kaymayı sever miyiz? – Evet, severiz."}, {"f": "Zeichnen wir gern mit Kreide? – Ja, wir zeichnen gern mit Kreide.", "b": "Tebeşirle çizmeyi sever miyiz? – Evet, severiz."}]}, {"id": "grammatik", "title": "zu / um zu / damit / weil", "sub": "Amaç ve sebep cümleleri", "cards": [{"f": "Ich habe vergessen die Rechnung zu bezahlen.", "b": "Hesabı ödemeyi unuttum. (zu + Infinitiv)"}, {"f": "Ich sehe meinen Bruder kommen.", "b": "Kardeşimin geldiğini görüyorum. (sehen + Infinitiv, ZU'suz)"}, {"f": "Ich höre meine Frau Tennis spielen.", "b": "Eşimin tenis oynadığını duyuyorum. (hören + Infinitiv, ZU'suz)"}, {"f": "Ich gehe schwimmen.", "b": "Yüzmeye gidiyorum. (gehen + Infinitiv, ZU'suz)"}, {"f": "Ich bleibe im Bett liegen.", "b": "Yatakta kalıyorum. (bleiben + Infinitiv, ZU'suz)"}, {"f": "Ich lasse sie schlafen.", "b": "Onun uyumasına izin veriyorum. (lassen + Infinitiv, ZU'suz)"}, {"f": "Ich lerne (zu) tanzen.", "b": "Dans etmeyi öğreniyorum. (lernen, zu opsiyonel)"}, {"f": "Ich unterrichte Deutsch, weil ich Geld verdienen will.", "b": "Almanca öğretiyorum çünkü para kazanmak istiyorum. (weil: neden/sebep, Kausalsatz)"}, {"f": "Ich lerne jeden Tag 20 neue Vokabeln, damit mein Wortschatz wächst.", "b": "Kelime dağarcığım gelişsin diye her gün 20 yeni kelime öğreniyorum. (damit: amaç, özneler farklı)"}, {"f": "Ali fährt in den Urlaub, um sich auszuruhen.", "b": "Ali dinlenmek için tatile gider. (um zu: amaç, özne aynı)"}, {"f": "Ich unterrichte Deutsch, um Geld zu verdienen.", "b": "Para kazanmak için Almanca öğretiyorum. (um zu: amaç, özne aynı)"}, {"f": "Ich unterrichte Deutsch, damit die Schüler glücklich sind.", "b": "Öğrenciler mutlu olsun diye Almanca öğretiyorum. (damit: özneler farklı)"}, {"f": "Komm näher, damit ich dich umarmen kann!", "b": "Yaklaş ki sana sarılabileyim! (damit: bağlaç)"}, {"f": "Ich möchte damit abnehmen.", "b": "Bununla kilo vermek istiyorum. (damit: zarf, \"bununla\")"}, {"f": "Die Mutter schließt leise die Tür, damit ihre Kinder schlafen können.", "b": "Anne, çocukları uyuyabilsin diye kapıyı sessizce kapatır. (özneler farklı → damit)"}, {"f": "Die Mutter schließt leise die Tür, um ihre Kinder nicht zu wecken.", "b": "Anne, çocuklarını uyandırmamak için kapıyı sessizce kapatır. (özne aynı → um zu)"}, {"f": "Die Mutter schließt die Tür leise, um die Tür nicht aufzubrechen.", "b": "Anne kapıyı kırmamak için kapıyı sessizce kapatıyor."}, {"f": "Die Mutter schließt leise die Tür, weil sie ihre Kinder nicht wecken möchte.", "b": "Anne, çocuklarını uyandırmak istemediği için kapıyı sessizce kapatır. (weil: sebep)"}, {"f": "Die Mutter schließt leise die Tür, weil sie alt ist.", "b": "Anne yaşlı olduğu için kapıyı sessizce kapatır."}, {"f": "Um Geld zu verdienen, unterrichte ich Deutsch.", "b": "Para kazanmak için Almanca öğretiyorum. (um zu cümle başında)"}, {"f": "Damit die Schüler glücklich sind, unterrichte ich Deutsch.", "b": "Öğrenciler mutlu olsun diye Almanca öğretiyorum. (damit cümle başında)"}, {"f": "Er spart, damit er auf die Universität gehen kann.", "b": "Üniversiteye gidebilmek için para biriktiriyor."}, {"f": "Er spart, um auf die Universität gehen zu können.", "b": "Üniversiteye gitmek için para biriktiriyor."}, {"f": "Er spart, damit er nach Deutschland gehen kann.", "b": "Almanya'ya gidebilmek için para biriktiriyor."}, {"f": "Er spart, um nach Deutschland zu gehen.", "b": "Almanya'ya gitmek için para biriktiriyor."}, {"f": "Er zählte das Geld, damit er nicht zu viel zahlen.", "b": "Fazla ödememek için parayı saydı."}, {"f": "Er zählte das Geld, um nicht zu viel zu bezahlen.", "b": "Fazla ödememek için parayı saydı."}, {"f": "Er verließ die Sitzung, damit er den Zug erreichen würde.", "b": "Trene yetişebilmek için toplantıdan ayrıldı."}, {"f": "Er verließ die Sitzung, um den Zug zu erreichen.", "b": "Treni yakalamak için toplantıdan ayrıldı."}, {"f": "Was kann man tun, damit man schnell Deutsch lernt?", "b": "Hızlı bir şekilde Almanca öğrenmek için ne yapılabilir?"}, {"f": "Was kann man tun, um schnell Deutsch zu lernen?", "b": "Hızlı bir şekilde Almanca öğrenmek için ne yapılabilir?"}, {"f": "hiermit", "b": "bununla beraber, beraberinde, bu vesile ile (genelde mektuplarda kullanılır)"}, {"f": "damit (Adv.)", "b": "bu suretle, böylece, bununla, onunla, şununla"}, {"f": "damit (Konjunktion)", "b": "-mek için, -mesi için, -sin diye (fiili sona atar, Nebensatz)"}]}, {"id": "alltag", "title": "Alltag – Günlük Kalıplar", "sub": "Ezberlemeye değer günlük konuşma kalıpları", "cards": [{"f": "Hast du schon gehört, dass sich Ali und Aysel getrennt haben?", "b": "Ali ve Aysel'in ayrıldığını duydun mu?"}, {"f": "Hast du schon gehört, dass Ahmet heiratet?", "b": "Ahmet'in evlendiğini duydun mu?"}, {"f": "Hast du so etwas schon mal gehört?", "b": "Daha önce böyle bir şey duydun mu?"}, {"f": "Hast du schon gehört, was passiert ist?", "b": "Ne olduğunu duydun mu?"}, {"f": "Ich kann es kaum erwarten, dich zu sehen.", "b": "Seni görmek için sabırsızlanıyorum."}, {"f": "Ich kann es kaum erwarten, deine Familie kennenzulernen.", "b": "Aileni tanımak için sabırsızlanıyorum."}, {"f": "Ich kann es kaum erwarten, dass die Schule anfängt.", "b": "Okulun başlamasını sabırsızlıkla bekliyorum."}, {"f": "Ich kann es kaum erwarten, Ali die gute Nachricht zu erzählen.", "b": "Ali'ye iyi haberi vermek için sabırsızlanıyorum."}, {"f": "Ich kann es kaum erwarten, nach Hause zu kommen.", "b": "Eve gitmek için sabırsızlanıyorum."}, {"f": "Ich kann es kaum erwarten, erwachsen zu werden.", "b": "Büyümek için sabırsızlanıyorum."}, {"f": "Ich kann dir gar nicht sagen, wie traurig mich das macht.", "b": "Bunun beni ne kadar üzdüğünü anlatamam."}, {"f": "Ich kann dir gar nicht sagen, wie dankbar ich dir für deine Hilfe bin!", "b": "Yardımın için ne kadar minnettar olduğumu anlatamam!"}, {"f": "Ich kann dir gar nicht sagen, wie sehr ich dich vermisst habe!", "b": "Seni ne kadar özlediğimi anlatamam!"}, {"f": "Ich weiß, wie man es macht.", "b": "Nasıl yapılacağını biliyorum."}, {"f": "Ich weiß, wie du dich fühlst.", "b": "Nasıl hissettiğini biliyorum."}, {"f": "Ich weiß, wie es ist, allein zu sein.", "b": "Yalnız olmanın nasıl bir şey olduğunu biliyorum."}, {"f": "Ich weiß, was ich tun muss.", "b": "Ne yapmam gerektiğini biliyorum."}, {"f": "Ich weiß, was du denkst.", "b": "Ne düşündüğünü biliyorum."}, {"f": "Ich weiß, warum wir das machen.", "b": "Bunu neden yaptığımızı biliyorum."}, {"f": "Ich weiß, wann ich hätte kommen sollen, aber ich habe es zu der Zeit nicht geschafft.", "b": "Ne zaman gelmem gerektiğini biliyorum ama o zaman gelemedim."}, {"f": "Ich weiß, wo ich nach Ali suchen soll.", "b": "Ali'yi nerede arayacağımı biliyorum."}, {"f": "Ich weiß, wohin ich gehen soll.", "b": "Nereye gideceğimi biliyorum."}, {"f": "Ich weiß, dass du Ali vermisst.", "b": "Ali'yi özlediğini biliyorum."}, {"f": "Ich weiß nicht, was los ist.", "b": "Ne olduğunu bilmiyorum."}, {"f": "Ich weiß kaum, wie ich es sagen soll, aber ...", "b": "Nasıl söyleyeceğimi neredeyse bilemiyorum ama ..."}, {"f": "Ich wusste nicht, was ich sagen sollte.", "b": "Ne söyleyeceğimi bilemedim."}, {"f": "Ich verstehe nicht, warum Ali dich nicht mag.", "b": "Ali'nin seni neden sevmediğini anlamıyorum."}, {"f": "Es wird dir nicht gefallen, aber ...", "b": "Hoşlanmayacaksın ama ..."}, {"f": "Ich denke an dich in dieser schlechten Zeit.", "b": "Bu kötü zamanda seni düşünüyorum."}, {"f": "Ich kam mir wie ein Idiot vor.", "b": "Kendimi aptal gibi hissettim."}, {"f": "Ich fühlte mich wie ein Löwe.", "b": "Kendimi aslan gibi hissettim."}, {"f": "Ich fühlte mich verraten.", "b": "Kendimi ihanete uğramış hissettim."}, {"f": "Ich fühlte mich nie so lebendig.", "b": "Kendimi hiç bu kadar canlı hissetmemiştim."}, {"f": "Ich fühle mich jetzt viel besser.", "b": "Şimdi çok daha iyi hissediyorum."}, {"f": "Ich fühle mich, als ob ich alles tun kann.", "b": "Her şeyi yapabileceğimi hissediyorum."}, {"f": "Ich interessiere mich sehr für Tiere und Naturschutz.", "b": "Hayvanlar ve doğa koruma ile çok ilgileniyorum."}, {"f": "Ich interessiere mich überhaupt nicht für Politik.", "b": "Siyasetle hiç ilgilenmiyorum."}, {"f": "Ich mache mir nichts aus Sport.", "b": "Spor umrumda değil."}, {"f": "Ich mache mir nichts mehr aus Ali.", "b": "Artık Ali umurumda değil."}, {"f": "Ich habe große Hoffnung, bald eine Arbeit zu finden.", "b": "Yakında bir iş bulma konusunda büyük umudum var."}, {"f": "Ali hat mir die Augen geöffnet.", "b": "Ali gözlerimi açtı."}, {"f": "Danke, dass du mir die Augen geöffnet hast.", "b": "Gözlerimi açtığın için teşekkür ederim."}, {"f": "Das schlucke ich nicht.", "b": "Bunu yutmam."}, {"f": "Er ist nicht von gestern.", "b": "O dünkü çocuk değil."}, {"f": "Meiner Meinung nach sollten wir mehr Geld für Vereine ausgeben.", "b": "Bence eğitime/kulüplere daha fazla para harcamalıyız."}, {"f": "Was mich betrifft, bin ich zufrieden.", "b": "Bana gelince, ben memnunum."}, {"f": "Das ist einfach eine Frage der Zeit.", "b": "Bu sadece bir zaman meselesi."}, {"f": "Es ist nur eine Frage der Zeit, bis wir den Dieb finden.", "b": "Hırsızı bulmamız an meselesi."}, {"f": "Was schlagen Sie uns vor?", "b": "Bize ne tavsiye edersiniz?"}, {"f": "Können Sie uns ein paar Tipps geben?", "b": "Bize biraz tavsiye verebilir misiniz?"}, {"f": "Wie wäre es mit dem Kino?", "b": "Peki ya sinema nasıl olur?"}, {"f": "Darf ich einen anderen Vorschlag machen?", "b": "Başka bir öneride bulunabilir miyim?"}, {"f": "An deiner Stelle würde ich still sein.", "b": "Ben olsam susardım."}, {"f": "An deiner Stelle würde ich es blau anstreichen.", "b": "Ben olsam maviye boyardım."}, {"f": "An deiner Stelle würde ich nicht mit ihm reden.", "b": "Ben olsam onunla konuşmazdım."}, {"f": "An deiner Stelle würde ich Ahmets Rat befolgen.", "b": "Yerinde olsam Ahmet'in tavsiyesini dinlerdim."}, {"f": "Was würdest du an meiner Stelle tun?", "b": "Benim yerimde olsaydın ne yapardın?"}, {"f": "Ich übernehme die Verantwortung für diesen Fehler.", "b": "Bu hatanın sorumluluğunu alıyorum."}, {"f": "Ich übernehme überhaupt keine Verantwortung.", "b": "Hiç sorumluluk almıyorum."}, {"f": "Hättest du Lust, mit mir ins Kino zu gehen?", "b": "Benimle sinemaya gitmek ister misin?"}, {"f": "Hättest du Lust auf einen Cappuccino?", "b": "Bir kapuçino ister misin?"}, {"f": "Ich hätte Lust, mir einen japanischen Film anzusehen.", "b": "Bir Japon filmi izlemek istiyorum."}]}, {"id": "konnektoren", "title": "Konnektoren & Nebensätze", "sub": "Bağlaçlar ve yan cümleler", "cards": [{"f": "Ich esse ein Brot, ich habe nämlich Hunger.", "b": "Bir ekmek yiyorum, çünkü açım. (nämlich: sebep açıklaması)"}, {"f": "Ich kann zwar ein bisschen Polnisch, aber nicht perfekt.", "b": "Biraz Lehçe biliyorum ama mükemmel değil. (zwar...aber)"}, {"f": "Auto fahren hat teils Vorteile, teils aber auch Nachteile.", "b": "Araba kullanmanın kısmen avantajları kısmen de dezavantajları var. (teils...teils)"}, {"f": "Ich muss arbeiten. Darum habe ich keine Zeit.", "b": "Çalışmam gerekiyor. Bu yüzden vaktim yok. (darum: bu nedenle)"}, {"f": "Pierre hat viel geübt. Er hat infolgedessen die Prüfung bestanden.", "b": "Pierre çok çalıştı. Bu sebepten sınavı geçti. (infolgedessen)"}, {"f": "Infolge meines Urlaubs bin ich sehr zufrieden.", "b": "Tatilim nedeniyle çok memnunum. (infolge + Gen: nedeniyle)"}, {"f": "Pierre hat viel geübt. Er hat folglich die Prüfung bestanden.", "b": "Pierre çok çalıştı. Bu sebepten sınavı geçti. (folglich)"}, {"f": "Natascha muss noch lernen. Stattdessen geht sie mit ihrer Freundin aus.", "b": "Natascha'nın hâlâ ders çalışması lazım. Bunun yerine arkadaşıyla dışarı çıkıyor. (stattdessen)"}, {"f": "Anstatt zu lernen, geht Natascha mit ihrer Freundin aus.", "b": "Ders çalışmak yerine Natascha arkadaşıyla dışarı çıkıyor. (anstatt zu + Infinitiv: yerine)"}, {"f": "Ich habe das Auto genommen, statt mit dem Bus zu fahren.", "b": "Otobüsle gitmek yerine arabayı aldım. (statt zu)"}, {"f": "Karl liest ein Buch. Währenddessen klingelt das Telefon.", "b": "Karl kitap okuyor. Bu esnada telefon çalıyor. (währenddessen)"}, {"f": "Seitdem ich Ayse kenne, bin ich glücklich.", "b": "Ayşe'yi tanıdığımdan beri mutluyum. (seitdem: -den beri)"}, {"f": "Jetzt arbeite ich. Davor habe ich Deutsch gelernt.", "b": "Şimdi çalışıyorum. Öncesinde Almanca öğrendim. (davor: öncesinde)"}, {"f": "Während Tobias auf dem Land wohnt, lebt Sonja in der Stadt.", "b": "Tobias kırsalda yaşarken, Sonja şehirde yaşıyor. (während: -iken)"}, {"f": "Während unseres Spaziergangs regnete es die ganze Zeit.", "b": "Yürüyüşümüz boyunca sürekli yağmur yağdı. (während + Gen)"}, {"f": "Obgleich sie wieder gesund war, blieb sie noch ein paar Tage im Bett.", "b": "Tekrar sağlıklı olmasına rağmen birkaç gün daha yatakta kaldı. (obgleich: -e rağmen)"}, {"f": "Er ist nicht zu meiner Party gekommen, obschon ich ihn eingeladen habe.", "b": "Onu davet etmeme rağmen partime gelmedi. (obschon)"}, {"f": "Ungeachtet seiner schweren Erkältung, geht er spazieren.", "b": "Ağır soğuk algınlığına rağmen yürüyüşe çıkıyor. (ungeachtet + Gen: -e rağmen)"}, {"f": "Ungeachtet der Schwierigkeiten gewannen wir das Rennen.", "b": "Zorluklara rağmen yarışı kazandık."}, {"f": "Tabita wohnt auf dem Land, aber Sanyo lebt in der Stadt.", "b": "Tabita kırsalda yaşıyor, ama Sanyo şehirde yaşıyor. (aber: ancak)"}, {"f": "Früher lasen die Leute viele Bücher. Heute jedoch bevorzugen viele das Fernsehen.", "b": "Eskiden insanlar çok kitap okurdu. Bugün ise birçoğu televizyonu tercih ediyor. (jedoch: ancak, fiilden önce)"}, {"f": "Ich wohne auf dem Land, demgegenüber wohnt Michael in der Stadt.", "b": "Ben kırsalda yaşıyorum, buna karşılık Michael şehirde yaşıyor. (demgegenüber: buna karşılık)"}, {"f": "Solange ich in der Ausbildung bin, muss ich mit wenig Geld auskommen.", "b": "Eğitimde olduğum sürece az parayla idare etmem gerekiyor. (solange: -diği sürece)"}, {"f": "Bis ich perfekt Deutsch spreche, vergehen noch ein paar Jahre.", "b": "Mükemmel Almanca konuşana kadar birkaç yıl daha geçecek. (bis: -e kadar)"}, {"f": "Ich rufe Sie an, sobald ich etwas Neues weiß.", "b": "Yeni bir şey öğrenir öğrenmez sizi ararım. (sobald: -er -mez)"}, {"f": "Ich werde dich besuchen, sofern ich nicht arbeiten muss.", "b": "Çalışmam gerekmezse seni ziyaret edeceğim. (sofern: eğer, şayet)"}, {"f": "Falls es regnet, grillen wir auf dem Balkon.", "b": "Yağmur yağarsa balkonda barbekü yaparız. (falls: eğer)"}, {"f": "Auf der Autobahn gab es Stau, sodass Frau Müller zu spät zur Arbeit kam.", "b": "Otoyolda trafik sıkışıklığı vardı, bu yüzden Bayan Müller işe geç kaldı. (sodass: bu yüzden)"}, {"f": "Er hat jeden Tag sechzehn Stunden gearbeitet, deshalb wurde er krank.", "b": "Her gün on altı saat çalıştı, bu yüzden hasta oldu. (deshalb/deswegen/daher)"}, {"f": "Am Wochenende gab es so starke Regenfälle, dass viele Straßen überflutet wurden.", "b": "Hafta sonu o kadar şiddetli yağmur yağdı ki birçok cadde sular altında kaldı. (so...dass)"}, {"f": "Du siehst aus, als ob du sehr müde wärst.", "b": "Çok yorgun görünüyorsun, sanki. (als ob: sanki)"}, {"f": "Er ist viel zu arrogant, als dass er zuhören würde.", "b": "Dinleyemeyecek kadar kibirli. (zu...als dass)"}, {"f": "Wir müssen eine Woche vorher einen Tisch reservieren, da das Restaurant sehr beliebt ist.", "b": "Restoran çok popüler olduğu için bir hafta önceden masa ayırtmalıyız. (da: çünkü)"}, {"f": "Peter hat heute Morgen verschlafen, deshalb kam er zu spät zur Schule.", "b": "Peter bu sabah geç kalktı, bu yüzden okula geç kaldı."}, {"f": "Ich kenne schon Bonn. Dahin möchte ich ziehen.", "b": "Bonn'u zaten tanıyorum. Oraya taşınmak istiyorum. (dahin/dorthin)"}, {"f": "Warst du in Frankfurt? Daher kommt Goethe.", "b": "Frankfurt'ta mı bulundun? Goethe oradan geliyor. (daher: oradan)"}, {"f": "Der Test war schwerer, als ich gedacht habe.", "b": "Test düşündüğümden daha zordu. (als: -den daha)"}, {"f": "Der Test war genauso schwer, wie ich gedacht habe.", "b": "Test düşündüğüm kadar zordu. (wie: kadar)"}, {"f": "Je mehr Überstunden ich mache, desto mehr Geld verdiene ich.", "b": "Ne kadar çok mesai yaparsam o kadar çok para kazanırım. (je...desto)"}, {"f": "Ich schütze meine Augen, indem ich meine Sonnenbrille trage.", "b": "Güneş gözlüğü takarak gözlerimi koruyorum. (indem: -erek/-arak)"}, {"f": "Man kann Benzin sparen, indem man langsam fährt.", "b": "Yavaş sürerek benzin tasarrufu yapılabilir."}, {"f": "Wir sparen viel Geld, dadurch dass wir in einer kleinen Wohnung leben.", "b": "Küçük bir dairede yaşayarak çok para biriktiriyoruz. (dadurch dass)"}, {"f": "Man kann seine Sprachkenntnisse dadurch verbessern, dass man Vokabeln lernt.", "b": "Kelime öğrenerek dil bilgisini geliştirebilir."}, {"f": "Er beginnt jeden Morgen seine Arbeit, ohne seine Kollegen zu grüßen.", "b": "Her sabah, meslektaşlarını selamlamadan işine başlar. (ohne zu: -madan)"}, {"f": "Sie sind gegangen, ohne dass sie bezahlt haben.", "b": "Ödeme yapmadan gittiler. (ohne dass)"}, {"f": "Soweit ich weiß, kommt Malaika aus Afrika.", "b": "Bildiğim kadarıyla Malaika Afrika'dan geliyor. (soweit: -diği kadarıyla)"}, {"f": "Selbst wenn die Kinder in der Schule sind, kann ich mich nicht ausruhen.", "b": "Çocuklar okulda olsa bile dinlenemiyorum. (selbst wenn/auch wenn: -sa bile)"}, {"f": "Ich werde dort sein, es sei denn, es regnet.", "b": "Yağmur yağmadıkça orada olacağım. (es sei denn: -medikçe)"}, {"f": "Wir gehen spazieren, außer wenn es den ganzen Tag regnet.", "b": "Bütün gün yağmur yağmadıkça yürüyüşe çıkarız. (außer wenn)"}, {"f": "Das Wetter muss gut sein, sonst gehen wir nicht spazieren.", "b": "Havanın iyi olması lazım, yoksa yürüyüşe çıkmayız. (sonst: yoksa)"}, {"f": "Er muss die Deutschprüfung bestehen, anderenfalls kann er nicht studieren.", "b": "Almanca sınavını geçmesi lazım, aksi takdirde okuyamaz. (anderenfalls)"}, {"f": "Je nachdem ob das Wetter gut oder schlecht ist, gehen wir spazieren oder bleiben zu Hause.", "b": "Hava iyi ya da kötü olmasına bağlı olarak yürüyüşe çıkarız ya da evde kalırız. (je nachdem)"}, {"f": "Je nach Region zeigt sich der Winter ganz unterschiedlich.", "b": "Bölgeye bağlı olarak kış çok farklı görünür. (je nach: -e bağlı olarak)"}, {"f": "Die Mannschaft hat nicht gut gespielt, dennoch hat sie das Spiel gewonnen.", "b": "Takım iyi oynamadı, yine de maçı kazandı. (dennoch/trotzdem)"}, {"f": "Ich habe ihn eingeladen, jedoch kam er nicht zu meiner Party.", "b": "Onu davet ettim, ama partime gelmedi. (jedoch)"}, {"f": "Der letzten Meldung zufolge ist kein Schaden entstanden.", "b": "Son habere göre hiçbir hasar oluşmadı. (zufolge + Dat: -e göre)"}, {"f": "Laut Statistik sind 80% der Deutschen übergewichtig.", "b": "İstatistiklere göre Almanların %80'i aşırı kilolu. (laut/gemäß/nach: -e göre)"}, {"f": "Wir sammeln Geld zugunsten behinderter Kinder.", "b": "Engelli çocuklar lehine para topluyoruz. (zugunsten + Gen: lehine)"}, {"f": "Der Lehrer erklärt die Übung anhand eines Beispiels.", "b": "Öğretmen alıştırmayı bir örnek üzerinden açıklıyor. (anhand: üzerinden, aracılığıyla)"}, {"f": "Mittels eines besonderen Zertifikates darf ich an der Uni als Dozent arbeiten.", "b": "Özel bir sertifika sayesinde üniversitede öğretim görevlisi olarak çalışabiliyorum. (mittels: vasıtasıyla)"}, {"f": "Ich möchte dir anläßlich deines Ergebnisses gratulieren.", "b": "Sonucun dolayısıyla seni tebrik etmek istiyorum. (anläßlich: -den ötürü, münasebetiyle)"}, {"f": "Aufgrund des schlechten Wetters kann der Ausflug leider nicht stattfinden.", "b": "Kötü hava nedeniyle gezi maalesef gerçekleşemiyor. (aufgrund + Gen: nedeniyle)"}, {"f": "Angesichts der unsicheren Wetterlage ziehen wir es vor, den Ausflug zu verschieben.", "b": "Belirsiz hava durumu karşısında geziyi ertelemeyi tercih ediyoruz. (angesichts: karşısında, göz önünde tutulunca)"}, {"f": "Dank eurer Mithilfe wurde das Fest ein großer Erfolg.", "b": "Yardımınız sayesinde şölen büyük bir başarı oldu. (dank + Dat/Gen: sayesinde)"}, {"f": "Mangels Interesse wurde der Vortrag kurzfristig abgesagt.", "b": "İlgi yetersizliğinden dolayı konferans kısa süre önce iptal edildi. (mangels: yetersizliğinden)"}, {"f": "Ich hoffe, Sie sind mit der Arbeit binnen einer Woche fertig.", "b": "Umarım işi bir hafta içinde bitirirsiniz. (binnen + Gen: içinde)"}, {"f": "Innerhalb des Hauses war es wärmer als draußen.", "b": "Evin içinde dışarıdan daha sıcaktı. (innerhalb: içinde)"}, {"f": "Das Verhalten des Schülers hatte zur Folge, dass er vom Unterricht ausgeschlossen wurde.", "b": "Öğrencinin davranışı, dersten uzaklaştırılmasıyla sonuçlandı. (zur Folge haben: ile sonuçlanmak)"}, {"f": "Ich habe Angst vor dem Flug, aber ich muss es in Kauf nehmen, dass ich fliegen muss.", "b": "Uçuştan korkuyorum ama uçmam gerektiğini kabullenmem lazım. (in Kauf nehmen: kabullenmek)"}, {"f": "Corona ist eine tödliche Krankheit, die schwer in den Griff zu bekommen ist.", "b": "Corona, kontrol altına alınması zor, ölümcül bir hastalıktır. (in den Griff bekommen: kontrol altına almak)"}, {"f": "Im Hinblick auf eine Familiengründung ist Ehrlichkeit äußerst wichtig.", "b": "Aile kurmak bakımından dürüstlük son derece önemlidir. (im Hinblick auf/hinsichtlich: bakımından)"}, {"f": "Er hatte einige Fragen in Bezug auf den neuen Vertrag.", "b": "Yeni sözleşmeyle ilgili birkaç sorusu vardı. (in Bezug auf/bezüglich: ile ilgili olarak)"}, {"f": "Ich beziehe mich auf Ihren Brief vom 20. April.", "b": "20 Nisan tarihli mektubunuza atıfta bulunuyorum. (sich beziehen auf)"}, {"f": "Im Gegensatz zu mir mögen viele Menschen dieses Buch.", "b": "Bana kıyasla birçok insan bu kitabı seviyor. (im Gegensatz zu: -in aksine)"}, {"f": "Aus dem Diagramm geht hervor, wie sich die Zahlen verändert haben.", "b": "Diyagramdan, sayıların nasıl değiştiği anlaşılıyor. (hervorgehen aus: -den anlaşılmak)"}, {"f": "Schlafmangel ist ein häufiger Auslöser für Kopfschmerzen.", "b": "Uyku eksikliği baş ağrısının sık görülen bir tetikleyicisidir. (der Auslöser: tetikleyici, sebep)"}, {"f": "Große Hitze löst im Sommer mehrere Waldbrände aus.", "b": "Aşırı sıcak yazın birçok orman yangınını tetikliyor. (auslösen: tetiklemek)"}, {"f": "Die Proteste bewirkten eine Veränderung.", "b": "Protestolar bir değişikliğe yol açtı. (bewirken: yol açmak)"}, {"f": "Kommunikationsmangel in einer Beziehung führt zu Missverständnis.", "b": "Bir ilişkideki iletişim eksikliği yanlış anlamaya yol açar. (führen zu: yol açmak, sebep olmak)"}, {"f": "Der Klimawandel wirkt sich auf die Natur negativ aus.", "b": "İklim değişikliği doğayı olumsuz etkiliyor. (sich auswirken: etkilemek)"}, {"f": "Alkohol kann Kopfschmerzen verursachen.", "b": "Alkol baş ağrısına sebep olabilir. (verursachen: sebep olmak)"}, {"f": "Die entsprechenden Informationen sind auf unserer Website zu finden.", "b": "İlgili bilgiler web sitemizde bulunabilir. (entsprechend: uygun)"}, {"f": "Wir haben alles entsprechend Ihrem Wunsch arrangiert.", "b": "Her şeyi isteğinize göre düzenledik. (entsprechend + Dat: -e göre)"}, {"f": "Das Angebot entspricht meinen Erwartungen.", "b": "Teklif beklentilerimi karşılıyor. (entsprechen: uymak, karşılamak)"}, {"f": "Dieses Jahr hat unser Unternehmen einen beträchtlichen Gewinn gemacht.", "b": "Bu yıl şirketimiz önemli ölçüde kâr elde etti. (beträchtlich: önemli ölçüde)"}]}, {"id": "redewendungen", "title": "Redewendungen", "sub": "Deyimler ve kalıp ifadeler", "cards": [{"f": "ab und zu", "b": "arada sırada, ara sıra, bazen"}, {"f": "Achtgeben auf …", "b": "göz kulak olmak, bir şeye dikkat etmek"}, {"f": "alle Brücken hinter sich abbrechen", "b": "bütün gemileri yakmak - arkandaki tüm köprüleri yakmak"}, {"f": "alle Hände voll zu tun haben", "b": "çok işi olmak, başını kaşıyacak vakti olmamak, tüm elleri dolu olmak"}, {"f": "alles auf eine Karte setzen", "b": "büyük riske girmek, her şeyi göze almak, riske atmak, herşeyi tek karta oynamak, tüm yumurtaları aynı sepete koymak"}, {"f": "alles doppelt sehen", "b": "her şeyi iki kez görmek, sarhoş olmak"}, {"f": "alles in allem", "b": "hepsi bir arada, hepsi birden"}, {"f": "alles zusammen", "b": "hep birlikte"}, {"f": "am Ball bleiben", "b": "ilgilenmek, aktif olmak, topu bırakmamak"}, {"f": "am Ball kleben", "b": "topa yapışırcasına uğraşmak, işi bırakmamak"}, {"f": "am Ball sein", "b": "ilgili olmak"}, {"f": "am Ende deiner Kräfte", "b": "takatinin sonunda"}, {"f": "am Ende der Geduld wartet der Segen", "b": "sabrın sonu selamettir"}, {"f": "am Ende sein", "b": "bitkin olmak, sonunda olmak"}, {"f": "am Ende seiner Geduld", "b": "sabrının sonunda"}, {"f": "am Rande des Grabes stehen", "b": "mezarın kenarında durmak, ölümcül hasta olmak"}, {"f": "am Ruder sein", "b": "dümende, iktidarda olmak"}, {"f": "an deiner Stelle", "b": "senin yerinde"}, {"f": "an seiner Stelle würde ich …", "b": "onun yerine olsam"}, {"f": "an der Quelle sitzen", "b": "kaynağın başını tutmak, suyun başını tutmak"}, {"f": "an der Reihe sein", "b": "sırası gelmek"}, {"f": "an die Luft gehen", "b": "dışarı çıkmak, temiz hava için yürüyüşe çıkmak"}, {"f": "an und für sich", "b": "aslında, doğrusu, esasında, haddizatında"}, {"f": "ans Licht kommen", "b": "açığa çıkmak, gün yüzüne çıkmak"}, {"f": "anteilmäßig verteilen", "b": "eşit olarak dağıtmak, kardeş payı yapmak"}, {"f": "Äpfel mit Birnen vergleichen", "b": "elma ile armutu karşılaştırmak"}, {"f": "Arm in Arm", "b": "kol kola"}, {"f": "Arm in Arm gehen", "b": "kol kola gitmek"}, {"f": "auf dem falschen Dampfer sein", "b": "yanlış ata oynamak, yanlış vapurda olmak"}, {"f": "auf dem Kopf stehen", "b": "baş aşağı durmak"}, {"f": "auf dem Laufenden sein", "b": "günü gününe haberdar olmak, sürekli bilgisi olmak"}, {"f": "ich halte Sie auf dem Laufenden", "b": "sizi bilgilendiririm"}, {"f": "auf dem Pflaster liegen", "b": "kaldırımda yatmak, işsiz, yurtsuz olmak"}, {"f": "auf den ersten Blick", "b": "ilk bakışta"}, {"f": "auf die Nase fallen", "b": "kaybetmek, burnu üstüne düşmek"}, {"f": "auf immer", "b": "ebediyen, sürekli"}, {"f": "auf immer und ewig", "b": "her zaman ve devamlı"}, {"f": "auf jeden Fall", "b": "her durumda, her ne olursa olsun"}, {"f": "auf Schritt und Tritt", "b": "her yerde, adım başında"}, {"f": "auf Schritt und Tritt folgen", "b": "adım adım takip etmek"}, {"f": "auf viele Schultern verteilen", "b": "birçok omuzlara yüklemek"}, {"f": "Aufgaben verteilen", "b": "görev dağıtmak"}, {"f": "aufgeregt sein", "b": "heyecanlı olmak"}, {"f": "aufs Äußerste gespannt sein", "b": "çok heyecanlı olmak"}, {"f": "aufs Ganze gehen", "b": "bir şeyi elde etmek için her şeyi göze almak, sonuna kadar götürmek"}, {"f": "aus Mitleid", "b": "acımaktan dolayı"}, {"f": "aus Mitleid weinen", "b": "acımaktan ağlamak"}, {"f": "außer Rand und Band sein", "b": "zıvanadan çıkmak, kontrolden çıkmak"}, {"f": "auswendig lernen", "b": "ezbere öğrenmek, ezberlemek"}, {"f": "Bankrott gehen / Bankrott machen", "b": "iflas etmek"}, {"f": "bei etwas Mist bauen", "b": "bir şeyde hata yapmak"}, {"f": "bei etwas Pech haben", "b": "bir şeyde şanssız olmak"}, {"f": "bei Geld sein", "b": "parası olmak"}, {"f": "bei sich behalten", "b": "kendinde tutmak"}, {"f": "bei sich denken", "b": "kendi kendine düşünmek"}, {"f": "bei sich haben", "b": "yanında olmak, üzerinde olmak"}, {"f": "bei sich sein", "b": "kendinle olmak"}, {"f": "bei sich tragen", "b": "yanında taşımak"}, {"f": "bei Verstand sein", "b": "aklı başında olmak"}, {"f": "beim Alten bleiben", "b": "eskiyi sürdürmek"}, {"f": "beim alten lassen", "b": "olduğu gibi bırakmak"}, {"f": "besser als gar nichts", "b": "hiç yoktan iyi"}, {"f": "bis über beide Ohren grinsen", "b": "kulaklarına kadar gülmek"}, {"f": "bis zu den Ohren erröten", "b": "kulaklarına kadar kızarmak"}, {"f": "bis zum Schluss", "b": "kapanıncaya kadar, sonuna dek"}, {"f": "Blut ist dicker als Wasser", "b": "kan bağı arkadaşlıktan önceliklidir"}, {"f": "cool sein", "b": "cool olmak"}, {"f": "cooler Typ", "b": "soğukkanlı olan kişi"}, {"f": "da kannst du lange warten", "b": "çok beklersin, boşuna/umutsuzca"}, {"f": "das bekommt mir nicht", "b": "bu bana yaramıyor"}, {"f": "das Ende vom Lied", "b": "meselenin sonucu"}, {"f": "das Geld zum Fenster hinauswerfen", "b": "parasını har vurup harman savurmak"}, {"f": "das Haar in der Suppe suchen/finden", "b": "her şeyde kusur bulmak"}, {"f": "das hat nichts zu bedeuten", "b": "hiç önemi yok"}, {"f": "das hat nichts zu sagen", "b": "bunun önemi yok"}, {"f": "das ist chinesisch für mich", "b": "bu benim için çince, anlamıyor olmak, fransız kalmak"}, {"f": "das ist der Gipfel!", "b": "bu kadar da fazla!"}, {"f": "das ist der Grund weshalb", "b": "bunun sebebi işte bu"}, {"f": "das ist der Hammer!", "b": "bu harika!"}, {"f": "das ist der Mühe wert", "b": "bu, zahmete değer"}, {"f": "das ist keine Kunst", "b": "iş değil, hüner değil, babam da yapar"}, {"f": "das ist mir Wurst", "b": "bu benim için fark etmez"}, {"f": "das ist noch nicht das Ende vom Lied", "b": "bu iş bununla bitmez"}, {"f": "das letzte Hemd hat keine Taschen", "b": "kefenin cebi olmaz"}, {"f": "das nützt dir gar nichts", "b": "bunun asla bir yararı olmaz"}, {"f": "das passt mir nicht", "b": "bu işime gelmez"}, {"f": "das schadet ja gar nichts", "b": "bunun sana hiç zararı olmaz"}, {"f": "das schwarze Schaf sein", "b": "kara koyun olmak"}, {"f": "das tut Ihnen gut", "b": "bu size iyi gelir"}, {"f": "das tut mir gut", "b": "bana iyi geliyor"}, {"f": "das tut mir in der Seele weh", "b": "bu içimi acıtıyor"}, {"f": "den Faden verlieren", "b": "ipin ucunu kaçırmak, konuyu kaybetmek"}, {"f": "den Gewinn verteilen", "b": "kazancı paylaşmak"}, {"f": "den Kopf in den Sand stecken", "b": "devekuşu gibi başını kuma gömmek"}, {"f": "den Kopf schütteln", "b": "hayır anlamında kafasını sallamak"}, {"f": "den Kopf verlieren", "b": "aklını kaybetmek"}, {"f": "den Laufpass geben", "b": "birini sepetlemek"}, {"f": "den Mund halten", "b": "ağzını/çenesini tutmak"}, {"f": "den Nagel auf den Kopf treffen", "b": "taşı gediğine koymak"}, {"f": "der lachende Dritte", "b": "gülen üçüncü kişi"}, {"f": "dicke Freunde", "b": "canciğer, sıkı fıkı dostlar"}, {"f": "dicke Freunde sein", "b": "sıkı dost olmak"}, {"f": "die Hosen runterlassen", "b": "pantolonu indirmek, bir konuyu ifşa etmek"}, {"f": "die Katze im Sack kaufen", "b": "bir şeyi görmeden satın almak"}, {"f": "die Nase voll haben", "b": "canına yetmek, yaka silkmek"}, {"f": "die Nase voll haben von …", "b": "…den/dan yaka silkmek"}, {"f": "die Nerven behalten", "b": "sinirlerine sahip olmak"}, {"f": "die Nerven verlieren", "b": "sinirleri bozulmak"}, {"f": "die Ohren spitzen", "b": "kulak kabartmak"}, {"f": "die Ruhe verlieren", "b": "sakinliğini kaybetmek"}, {"f": "die Stirn runzeln", "b": "kaş çatmak"}, {"f": "dies oder gar nichts", "b": "ya bu ya hiç"}, {"f": "dort ist was los", "b": "orada bir şeyler oluyor"}, {"f": "durch und durch", "b": "bütünüyle, tamamen"}, {"f": "ein alter Hase sein", "b": "işinin ehli olmak"}, {"f": "ein bunter Abend", "b": "renkli/eğlenceli bir akşam"}, {"f": "ein doppeltes Spiel spielen", "b": "ikili oyun oynamak"}, {"f": "ein Fisch auf dem Trockenen", "b": "sudan çıkmış balığa dönmek"}, {"f": "ein Gedicht auswendig lernen", "b": "bir şiiri ezbere öğrenmek"}, {"f": "ein goldenes Herz haben", "b": "altın kalpli olmak"}, {"f": "ein gutes Herz haben", "b": "iyi kalpli olmak"}, {"f": "ein Mann der Tat", "b": "eylem adamı"}, {"f": "ein Problem loswerden", "b": "bir sorundan kurtulmak"}, {"f": "ein Sack voll Lügen", "b": "çuval dolusu yalan"}, {"f": "ein Schlag ins Gesicht", "b": "enseye bir tokat"}, {"f": "ein Schlag ins Wasser", "b": "boşu boşuna zahmete girmek"}, {"f": "ein schwarzer Tag", "b": "felaket günü, kara gün"}, {"f": "eine alte Rechnung begleichen", "b": "eski bir hesabı ödemek"}, {"f": "eine Fahrt ins Blaue", "b": "bilinmeyen bir hedefe sürüş"}, {"f": "eine Rolle spielen", "b": "önemli bir rol oynamak"}, {"f": "eine rosige Zukunft vor sich haben", "b": "parlak bir geleceği olmak"}, {"f": "einen Bärenhunger haben", "b": "kurt gibi aç olmak"}, {"f": "einen Korb bekommen", "b": "çıkma teklifinin reddedilmesi"}, {"f": "einen Kurzschluss haben", "b": "kısa devre olmak"}, {"f": "er hat nichts zu lachen", "b": "gülecek durumda değil"}, {"f": "er ist psychisch völlig am Ende", "b": "psikolojisi bozulmuş"}, {"f": "ermutigen", "b": "cesaretlendirmek, gayret vermek"}, {"f": "es gut mit jemandem meinen", "b": "birine karşı iyi niyet beslemek"}, {"f": "etwas im Auge haben", "b": "bir şey tasarlamak, planlamak"}, {"f": "etwas im Blut haben", "b": "kanında bir şey olmak"}, {"f": "etwas im Kopf behalten", "b": "bir şeyi aklında tutmak"}, {"f": "etwas in Frage stellen", "b": "bir şeyden şüphelenmek"}, {"f": "etwas in Gang bringen", "b": "bir şeye başlanmasına önayak olmak"}, {"f": "etwas leicht nehmen", "b": "kolaya almak, hafife almak"}, {"f": "etwas zu sagen haben", "b": "söyleyecek sözü olmak"}, {"f": "fast genauso wie", "b": "hemen hemen aynı gibi"}, {"f": "Feuer fangen", "b": "aşık olmak, ateş almak, tutuşmak"}, {"f": "fort und fort", "b": "devamlı, ha bire"}, {"f": "fremdgehen", "b": "hovardalık yapmak, eşini aldatmak"}, {"f": "frisch von der Quelle", "b": "ilk elden, kaynaktan taze"}, {"f": "früher oder später", "b": "er veya geç, eninde sonunda"}, {"f": "fünfte Rad am Wagen sein", "b": "fazla, lüzumsuz olmak"}, {"f": "für drei essen", "b": "üç kişilik yemek, çok yemek"}, {"f": "fürs erste", "b": "başlangıç olarak, evvela, şimdilik"}, {"f": "ganz Auge sein", "b": "göz kesilmek"}, {"f": "ganz Ohr sein", "b": "pür dikkat olmak, kulak kesilmek"}, {"f": "gar nichts taugen", "b": "hiçbir şeye yaramamak"}, {"f": "Gas geben", "b": "gaz vermek, gaza basmak"}, {"f": "genug haben von", "b": "…den/dan usanmak"}, {"f": "Gesagt, getan", "b": "söylenir söylenmez yaptı"}, {"f": "Gespräch unter vier Augen", "b": "baş başa konuşma"}, {"f": "gleich um die Ecke", "b": "köşeyi dönünce, çok yakın"}, {"f": "Gott sei Dank!", "b": "Allah'a şükür!"}, {"f": "grünes Licht geben", "b": "onay vermek, yeşil ışık yakmak"}, {"f": "gut in Form sein", "b": "iyi formda olmak"}, {"f": "gute Nerven haben", "b": "sağlam sinirlere sahip olmak"}, {"f": "Hand in Hand gehen", "b": "el ele gitmek"}, {"f": "Herr im Haus sein", "b": "evin efendisi olmak"}, {"f": "ich bereue gar nichts", "b": "hiçbir şeye pişman değilim"}, {"f": "ich bin dabei", "b": "beni de sayın, ben varım"}, {"f": "im Blut liegen", "b": "yaradılışında olmak, kanında olmak"}, {"f": "im Nu", "b": "anında, kaşla göz arasında"}, {"f": "im Recht sein", "b": "haklı olmak"}, {"f": "immer am Ball", "b": "daima aktif, daima kontrolde"}, {"f": "immer der Nase nach!", "b": "daima burun doğrultusunda!"}, {"f": "in Acht nehmen", "b": "bir şeye dikkat etmek"}, {"f": "in der Nacht sind alle Katzen grau", "b": "geceleri her şey aynı görünür"}, {"f": "in der Regel", "b": "genellikle"}, {"f": "in der Tat", "b": "gerçekten, sahiden"}, {"f": "in die Luft fliegen", "b": "havaya uçmak, patlamak"}, {"f": "in erster Linie", "b": "evvela, her şeyden önce"}, {"f": "in Form sein", "b": "formunda olmak"}, {"f": "in Frage kommen für …", "b": "…için söz konusu olmak"}, {"f": "in Frieden lassen", "b": "rahat bırakmak"}, {"f": "in Gang bringen", "b": "harekete geçirmek, yürütmek"}, {"f": "in guter Stimmung sein", "b": "iyi bir ruh halinde olmak"}, {"f": "ins Wasser fallen", "b": "halledilmemek, yapılmamak"}, {"f": "Jahr für Jahr", "b": "seneden seneye, yıldan yıla"}, {"f": "jede Menge", "b": "bol miktarda"}, {"f": "jemandem den Laufpass geben", "b": "birini kapı dışarı etmek"}, {"f": "jemandem eine Lektion erteilen", "b": "birine dersini vermek"}, {"f": "jemandem grünes Licht geben", "b": "birine yeşil ışık yakmak"}, {"f": "jemandem im Wege stehen", "b": "birine engel olmak"}, {"f": "jemanden die Daumen drücken", "b": "birine şans dilemek"}, {"f": "jemanden kaltmachen", "b": "birini öldürmek"}, {"f": "jemanden zum Narren halten", "b": "birini enayi yerine koymak"}, {"f": "jemanden, etwas satt haben", "b": "birinden, bir şeyden bıkmak"}, {"f": "junges Blut", "b": "genç kan, genç insanlar"}, {"f": "kalte Küche", "b": "soğuk yemekler"}, {"f": "kaltes Blut bewahren", "b": "soğukkanlı durmak"}, {"f": "Kein Blatt vor den Mund nehmen", "b": "ağzında bakla ıslanmamak"}, {"f": "keine Ahnung haben", "b": "habersiz olmak, hiçbir fikri olmamak"}, {"f": "keine Rolle spielen", "b": "önemli bir rolü olmamak"}, {"f": "keine schlafenden Hunde wecken", "b": "uyuyan köpeği uyandırmamak"}, {"f": "keinen Pfennig wert sein", "b": "beş para etmemek"}, {"f": "Kindermund tut Wahrheit kund", "b": "çocuktan al haberi"}, {"f": "Klappe halten", "b": "çenesini tutmak"}, {"f": "klein, aber fein", "b": "küçük ama gösterişli"}, {"f": "kurz und gut", "b": "kısacası, sözün kısası"}, {"f": "Kurzschluss haben", "b": "yanlış mantıksal çıkarım yapmak"}, {"f": "lang und breit erzählen", "b": "uzun uzadıya anlatmak"}, {"f": "langsam, aber sicher", "b": "yavaş ama emin bir şekilde"}, {"f": "letzten Endes", "b": "eninde sonunda"}, {"f": "Liebe auf den ersten Blick", "b": "ilk bakışta aşık olma, yıldırım aşkı"}, {"f": "loswerden", "b": "başından savmak"}, {"f": "Luft ist rein", "b": "durum elverişli, tehlike yok"}, {"f": "Mach dir nichts draus!", "b": "buna kafaya takma! canını sıkma"}, {"f": "meine Geduld ist langsam am Ende", "b": "artık sabrım tükeniyor"}, {"f": "mir geht ein Licht auf", "b": "şimdi anlamaya başlıyorum"}, {"f": "mir ist alles egal", "b": "umurumda değil"}, {"f": "mir liegt das Wort auf der Zunge", "b": "dilimin ucunda söyleyemiyorum"}, {"f": "mir liegt nichts daran", "b": "benim için çok önemi yok"}, {"f": "mir liegt viel daran", "b": "benim için çok önemli"}, {"f": "mit dem Feuer spielen", "b": "ateşle oynamak"}, {"f": "mit der Wortwahl sehr vorsichtig sein", "b": "kelimelere çok dikkat etmek"}, {"f": "mit Kind und Kegel", "b": "çoluk çocuk"}, {"f": "mit Leib und Seele", "b": "canla başla, canı gönülden"}, {"f": "mit offenem Munde dastehen", "b": "ağzı bir karış açık kalmak"}, {"f": "Mittel und Wege finden", "b": "çaresini bulmak, kolayını bulmak"}, {"f": "nach und nach", "b": "azar azar, yavaş yavaş, gitgide"}, {"f": "nach wie vor", "b": "eskisi gibi, önceki gibi"}, {"f": "neue Wege einschlagen", "b": "yeni yollara başvurmak, çığır açmak"}, {"f": "nicht in Form sein", "b": "formda olmamak"}, {"f": "nicht in Frage kommen", "b": "bahis konusu olmamak"}, {"f": "nichts verraten", "b": "hiç açığa vurmamak"}, {"f": "nichts zu machen sein", "b": "yapacak bir şey olmamak"}, {"f": "nie und nimmer", "b": "asla, hiçbir zaman"}, {"f": "noch und noch", "b": "pek çok"}, {"f": "Oberwasser bekommen", "b": "üstün olmak"}, {"f": "ohne Rast und Ruh", "b": "dinlenmeden, ara vermeden"}, {"f": "öl ins Feuer gießen", "b": "yangına körükle gitmek"}, {"f": "Paroli bieten", "b": "karşılık vermek"}, {"f": "platt sein", "b": "şaşkın olmak"}, {"f": "Pleite gehen", "b": "batmak, iflas etmek"}, {"f": "samt und sonders", "b": "hep birlikte"}, {"f": "Schlag auf Schlag", "b": "hızlı şekilde birbiri ardına"}, {"f": "Schulter an Schulter", "b": "omuz omuza"}, {"f": "schwarz sehen", "b": "karamsar olmak"}, {"f": "Schwein haben", "b": "çok şanslı olmak"}, {"f": "sein Brot verdienen", "b": "ekmeğini kazanmak"}, {"f": "sein Ehrenwort geben", "b": "şeref sözü vermek"}, {"f": "sein Wort halten", "b": "sözünde durmak"}, {"f": "seit Jahr und Tag", "b": "epeydir, uzun zamandan beri"}, {"f": "sich einen Namen machen", "b": "adını duyurmak, nam yapmak"}, {"f": "sich lustig machen über", "b": "birini ciddiye almamak, kafaya almak"}, {"f": "sich wie zu Hause fühlen", "b": "ev gibi hissetmek"}, {"f": "so ein Mist!", "b": "kahretsin! lanet olsun!"}, {"f": "so wie es aussieht", "b": "görünüşe bakılırsa"}, {"f": "so wie ich es sehe", "b": "gördüğüm kadarıyla"}, {"f": "todmüde sein", "b": "ölü gibi yorgun olmak"}, {"f": "übervorsichtig sein", "b": "aşırı dikkatli olmak"}, {"f": "um den heißen Brei herumreden", "b": "lafı ağzında gevelemek"}, {"f": "um ein Haar", "b": "hemen hemen, kıl payı, neredeyse"}, {"f": "um jeden Preis", "b": "her ne pahasına olursa olsun"}, {"f": "unter aller Kritik sein", "b": "çok kötü olmak"}, {"f": "unter uns gesagt", "b": "laf aramızda kalsın"}, {"f": "unter vier Augen", "b": "baş başa, özel"}, {"f": "unvorsichtig sein", "b": "dikkatsiz olmak"}, {"f": "viel geben auf", "b": "birine veya bir şeye çok önem vermek"}, {"f": "viel Lärm um nichts", "b": "kuru gürültü"}, {"f": "Vollgas geben", "b": "tam gaz vermek"}, {"f": "von A bis Z", "b": "A'dan Z'ye"}, {"f": "von Anfang bis Ende", "b": "başından sonuna kadar"}, {"f": "von Kopf bis Fuß", "b": "baştan aşağı, tepeden tırnağa"}, {"f": "von Mann zu Mann", "b": "erkek erkeğe"}, {"f": "von mir aus", "b": "benim için farketmez"}, {"f": "von Mund zu Mund gehen", "b": "kulaktan kulağa yayılmak"}, {"f": "von Zeit zu Zeit", "b": "zaman zaman"}, {"f": "vor Hunger sterben", "b": "açlıktan ölmek"}, {"f": "vorsichtig sein", "b": "dikkatli olmak"}, {"f": "wenig geben auf", "b": "birine veya bir şeye az önem vermek"}, {"f": "wie der Blitz", "b": "şimşek gibi"}, {"f": "wie eine kalte Dusche", "b": "soğuk bir duş gibi, direkt doğruyu söylemek"}, {"f": "Wie gewonnen, so zerronnen.", "b": "haydan gelen huya gider"}, {"f": "wie Sand am Meer", "b": "çok bol, denizde kum gibi"}, {"f": "wie zu Hause", "b": "evdeki gibi"}, {"f": "wieder auf den Beinen sein", "b": "tekrar ayakta olmak"}, {"f": "wieder gesund sein", "b": "tekrar sağlıklı olmak"}, {"f": "Zeit ist Geld", "b": "vakit nakittir"}, {"f": "zu weit gehen", "b": "fazla ileri gitmek, abartmak"}, {"f": "zum Fenster hinauswerfen", "b": "pencereden dışarı atmak"}, {"f": "zum Glück", "b": "Allah'tan, şanstan, neyse ki"}, {"f": "zum Kuckuck!", "b": "Allah belasını versin!"}, {"f": "zum Schluss kommen", "b": "sona gelmek, bitirmek"}, {"f": "zur Hand haben", "b": "elinin altında olmak"}, {"f": "zur Hölle gehen", "b": "cehenneme gitmek"}, {"f": "zur Neige gehen", "b": "azalmak, tükenmek"}, {"f": "zur Not", "b": "tehlike anında, başka yolu yoksa"}, {"f": "zur Welt kommen", "b": "dünyaya gelmek, doğmak"}, {"f": "zwei Fliegen mit einer Klappe schlagen", "b": "bir taşla iki kuş vurmak"}]}];
+</script>
+<script>
+/* ============ CONFIG ============ */
+const GROUP_SIZE = 15;
+const PALETTE = ["pink","peach","mint","sky","lilac","lemon","coral","sage"];
+
+/* ============ STATE ============ */
+let currentSection = null;
+let currentDeck = [];   // array of card indices into full pool (shuffled or not)
+let currentPool = [];   // full card list for the section
+let groupStart = 0;
+let cursor = 0;
+let flipped = false;
+
+/* ============ ELEMENTS ============ */
+const homeView = document.getElementById('homeView');
+const studyView = document.getElementById('studyView');
+const doneView = document.getElementById('doneView');
+const topicGrid = document.getElementById('topicGrid');
+const studyTitle = document.getElementById('studyTitle');
+const cardEl = document.getElementById('card');
+const frontTxt = document.getElementById('frontTxt');
+const backTxt = document.getElementById('backTxt');
+const progressFill = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+const cardStage = document.getElementById('cardStage');
+
+/* ============ BUILD HOME GRID ============ */
+function buildGrid(){
+  topicGrid.innerHTML = '';
+  SECTIONS.forEach((sec, i) => {
+    const color = PALETTE[i % PALETTE.length];
+    const div = document.createElement('div');
+    div.className = 'topic-card';
+    div.style.background = `var(--${color})`;
+    div.innerHTML = `<div><h3>${sec.title}</h3><p>${sec.sub}</p></div><div class="count">${sec.cards.length} kart</div>`;
+    div.addEventListener('click', () => openSection(i));
+    topicGrid.appendChild(div);
+  });
+}
+
+/* ============ OPEN SECTION ============ */
+function openSection(i){
+  currentSection = i;
+  currentPool = SECTIONS[i].cards.map((c, idx) => idx);
+  groupStart = 0;
+  studyTitle.textContent = SECTIONS[i].title;
+  startGroup();
+  homeView.style.display = 'none';
+  studyView.classList.add('active');
+  doneView.classList.remove('active');
+}
+
+function backToHome(){
+  studyView.classList.remove('active');
+  doneView.classList.remove('active');
+  homeView.style.display = 'block';
+}
+
+/* ============ GROUP / DECK LOGIC ============ */
+function startGroup(){
+  currentDeck = currentPool.slice(groupStart, groupStart + GROUP_SIZE);
+  cursor = 0;
+  flipped = false;
+  doneView.classList.remove('active');
+  studyView.classList.add('active');
+  renderCard();
+}
+
+function shuffleDeck(){
+  const pool = currentPool.slice();
+  for(let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  currentPool = pool;
+  groupStart = 0;
+  startGroup();
+}
+
+function renderCard(){
+  const idx = currentDeck[cursor];
+  const cardData = SECTIONS[currentSection].cards[idx];
+  frontTxt.textContent = cardData.f;
+  backTxt.textContent = cardData.b;
+  cardEl.classList.remove('flipped','swipe-left','swipe-right');
+  flipped = false;
+  const totalGroups = Math.ceil(currentPool.length / GROUP_SIZE);
+  const thisGroup = Math.floor(groupStart / GROUP_SIZE) + 1;
+  progressFill.style.width = ((cursor+1)/currentDeck.length*100) + '%';
+  progressLabel.textContent = `Grup ${thisGroup}/${totalGroups} · Kart ${cursor+1}/${currentDeck.length}`;
+}
+
+function flipCard(){
+  flipped = !flipped;
+  cardEl.classList.toggle('flipped', flipped);
+}
+
+function nextCard(animateDir){
+  if(animateDir){
+    cardEl.classList.add(animateDir === 'left' ? 'swipe-left' : 'swipe-right');
+  }
+  setTimeout(() => {
+    if(cursor < currentDeck.length - 1){
+      cursor++;
+      renderCard();
+    } else {
+      showDone();
+    }
+  }, animateDir ? 220 : 0);
+}
+
+function prevCard(){
+  if(cursor > 0){
+    cursor--;
+    renderCard();
+  }
+}
+
+function showDone(){
+  studyView.classList.remove('active');
+  doneView.classList.add('active');
+  const totalGroups = Math.ceil(currentPool.length / GROUP_SIZE);
+  const thisGroup = Math.floor(groupStart / GROUP_SIZE) + 1;
+  document.getElementById('doneSub').textContent =
+    thisGroup < totalGroups
+      ? `${SECTIONS[currentSection].title} · Grup ${thisGroup}/${totalGroups} tamamlandı.`
+      : `${SECTIONS[currentSection].title} konusunu tamamladın!`;
+  document.getElementById('btnNextGroup').style.display = thisGroup < totalGroups ? 'inline-block' : 'none';
+}
+
+/* ============ EVENTS ============ */
+document.getElementById('btnBack').addEventListener('click', backToHome);
+document.getElementById('btnDoneHome').addEventListener('click', backToHome);
+document.getElementById('btnShuffle').addEventListener('click', shuffleDeck);
+document.getElementById('btnFlip').addEventListener('click', flipCard);
+document.getElementById('btnNext').addEventListener('click', () => nextCard(null));
+document.getElementById('btnPrev').addEventListener('click', prevCard);
+document.getElementById('btnRepeat').addEventListener('click', startGroup);
+document.getElementById('btnNextGroup').addEventListener('click', () => {
+  groupStart += GROUP_SIZE;
+  startGroup();
+});
+cardEl.addEventListener('click', flipCard);
+
+document.getElementById('btnFullscreen').addEventListener('click', () => {
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if(!isFs && req){ req.call(el); }
+  else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if(exit) exit.call(document);
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if(!studyView.classList.contains('active')) return;
+  if(e.key === 'ArrowRight'){ nextCard('right'); }
+  else if(e.key === 'ArrowLeft'){ prevCard(); }
+  else if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); flipCard(); }
+});
+
+/* Touch swipe */
+let touchStartX = null, touchStartY = null;
+cardStage.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, {passive:true});
+cardStage.addEventListener('touchend', (e) => {
+  if(touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){
+    if(dx < 0) nextCard('left'); else prevCard();
+  }
+  touchStartX = null; touchStartY = null;
+}, {passive:true});
+
+/* ============ INIT ============ */
+buildGrid();
+</script>
+</body>
+</html>
